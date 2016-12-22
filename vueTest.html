@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<div id="vueTest">
+		<input type="text" name="cc" v-model="test1">
+		<div v-text="test1"></div>
+		<div v-text="test1"></div>
+		<div v-text="test2"></div>
+	</div>
+</body>
+	<script type="text/javascript">
+		var Vue = function (params) {
+			this.el = document.getElementById(params.el)
+			this.data = params.data
+			this.init()
+		}
+
+		Vue.prototype = {
+			init: function () {
+				this.updateView()
+				this.bindData()
+				this.bindModel()
+			},
+			// 更新视图
+			updateView: function () {
+				// v-text 视图更新
+				var doms = this.el.querySelectorAll('[v-text]')
+				for (var i = 0; i < doms.length; i++) {
+					var bindName = doms[i].getAttribute('v-text')
+					doms[i].innerHTML = this.data[bindName]
+				}
+				// v-model 视图更新
+				var modelDoms = this.el.querySelectorAll('[v-model]')
+				for (var i = 0; i < modelDoms.length; i++) {
+					var modelBindName = modelDoms[i].getAttribute('v-model')
+					modelDoms[i].value = this.data[modelBindName] || ''
+				}
+			},
+			// 数据绑定
+			bindData: function () {
+				var data = this.data
+				for (var key in data) {
+					this.defineObject(data, key, data[key])
+				}
+			},
+			// model数据绑定
+			bindModel: function () {
+				var data = this.data
+				var _that = this
+				var doms = this.el.querySelectorAll('[v-model]')
+				for (var i = 0; i < doms.length; i++) {
+					var bindName = doms[i].getAttribute('v-model')
+					doms[i].value = data[bindName] || ''
+					if (document.addEventListener) {
+						doms[i].addEventListener('keyup', function (event) {
+							e = event || window.event
+							data[bindName] = e.target.value
+						}, false)
+					} else {
+						doms[i].attachEvent('onkeyup', function (event) {
+							e = event || window.event
+							data[bindName] = e.target.value
+						}, false)
+					}
+				}
+			},
+			// 数据劫持
+			defineObject: function (obj, prop, value) {
+				var value = value || ''
+				var _that = this
+				Object.defineProperty(obj, prop, {
+					get: function () {
+						return value
+					},
+					set: function (newVal_) {
+						value = newVal_
+						_that.updateView()
+					}
+				})
+			},
+		}
+
+		var vue = new Vue({
+			el: 'vueTest',
+			data: {
+				test1: 'this is a test',
+				test2: 'this is a test2'
+			}
+		})
+
+		// 测试用
+		setTimeout(function () {
+			vue.data.test1 = '5 second delay'
+		}, 5000)
+	</script>
+</html>
